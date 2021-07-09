@@ -1,25 +1,38 @@
 import {AXIOS} from "./axiosConfig";
 
-class MovieService{
-	async getMovies(params){
-		const {data} = await AXIOS.get('/discover/movie', {
-			params
+class MovieService {
+	async getMovies(params) {
+		try {
+			const {data} = await AXIOS.get('/discover/movie', {
+				params
 
-		})
-		return data
+			})
+			return data
+		} catch (e) {
+			console.log(e)
+		}
 	}
 
-	async getMoviesPage(page){
-		const {data} = await AXIOS.get(`/discover/movie?page=${page}`)
+	async getMoviesPage(page) {
+		try {
+			const {data} = await AXIOS.get(`/discover/movie?page=${page}`)
 
-		return data
+			return data
+		} catch (e) {
+			console.log(e)
+		}
 	}
 
-	async getMovieDetailsById(movieId){
-		const {data} = await AXIOS.get(`/movie/${movieId}`)
-		console.log(data)
-		return data
+	async getMovieDetailsById(movieId) {
+		try {
+			const {data} = await AXIOS.get(`/movie/${movieId}`)
+
+			return data
+		} catch (e) {
+			console.log(e)
+		}
 	}
 
 }
+
 export const moviesService = new MovieService();

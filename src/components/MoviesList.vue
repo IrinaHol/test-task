@@ -1,7 +1,7 @@
 <template>
   <div>
     <header>
-      <div class="boxSearch">
+      <div v-if="list==='movies'" class="boxSearch">
         <img src='../assets/img/search.svg' alt="search" class="searchIcon"/>
         <input v-model="searchTextValue" type="text" placeholder="Search" class="SearchInput"/>
       </div>
@@ -17,29 +17,25 @@
 
     <main class="mainContainer">
 
-      <div v-if="list==='favoriteMovie'" class="listFavoriteMovie">
-        <span>Your favorite movies </span>
-        <div v-for="movie in cart" :key="movie.id" class="oneMovieBox">
-          <img :src="'https://image.tmdb.org/t/p/w200' + movie.poster_path" alt=movie.original_title/>
-          <span class="movieTitle">{{ movie.title }}</span>
-        </div>
+      <div v-if="list==='favoriteMovie'">
+        <FavoriteMovie :cart="cart"/>
       </div>
 
       <div v-if="list==='movies'">
         <section class="movieContainer" v-if='!searchTextValue'>
 
-          <div v-for="movie in onSearch" :key="movie.id" class="oneMovieBox">
+          <div v-for="(movie) in onSearch" :key="movie.id" class="oneMovieBox">
             <router-link :to="{ name: 'SingleMovie', params: { id: movie.id }}" class="navigation">
               <img :src="'https://image.tmdb.org/t/p/w200' + movie.poster_path" alt=movie.original_title/>
               <span class="movieTitle">{{ movie.title }}</span>
             </router-link>
 
             <div class="favoriteMovie">
-              <button :disabled="cart.includes(movie)" @click="addItemtoCart(movie)" class="like">
+              <button :disabled="(cart.includes(JSON.stringify(movie)))" @click="addItemtoCart(movie)" class="like">
                 <span>Like</span>
               </button>
 
-              <button  @click="removeItemtoCart(movie)" class="dislike">
+              <button :disabled="(!cart.includes(JSON.stringify(movie)))" @click="removeItemFromCart(movie)" class="dislike">
                 <span>Dislike</span>
               </button>
             </div>
@@ -48,7 +44,7 @@
         </section>
 
         <section class="movieContainer" v-else>
-          <div v-for="movie in onSearch" :key="movie.id" class="oneMovieBox">
+          <div v-for="movie in onSearch" :key="movie.id" class="oneMovie" >
             <img :src="'https://image.tmdb.org/t/p/w200' + movie.poster_path" alt=movie.original_title/>
             <span>{{ movie.title }}</span>
             <p>Overview: {{ movie.overview }}</p>
@@ -63,10 +59,11 @@
 <script>
 import {moviesService} from '@/services/MoviesService';
 import Pagination from '@/components/Pagination';
+import FavoriteMovie from "@/components/FavoriteMovie";
 
 export default {
   name: "MoviesList",
-  components: {Pagination},
+  components: {FavoriteMovie, Pagination},
   data: () => ({
     movies: [],
     page: 1,
@@ -77,25 +74,23 @@ export default {
   }),
 
   computed: {
-    id() {
-      console.log(this.$route.params.id)
-      return this.$route.params.id;
-    },
     onSearch() {
-      const search = this.searchTextValue.toLowerCase()
+      const search = this.searchTextValue.toLowerCase();
       return this.movies.filter(function (movie) {
         return movie.original_title.toLowerCase().includes(search);
       });
-    },
+    }
   },
 
   created() {
-    this.loadListMovies(this.page)
+    this.loadListMovies(this.page);
   },
+
   mounted() {
     if (localStorage.getItem('cart')) {
       try {
         this.cart = JSON.parse(localStorage.getItem('cart'));
+
       } catch (e) {
         localStorage.removeItem('cart');
       }
@@ -104,37 +99,41 @@ export default {
 
   methods: {
     async loadListMovies(pageNumber) {
-      const {...data} = await moviesService.getMoviesPage(pageNumber)
+      const {...data} = await moviesService.getMoviesPage(pageNumber);
       this.movies = data.results;
       this.total = data.total_pages;
-      console.log(data)
     },
 
     addItemtoCart(movie) {
-      this.cart.indexOf(movie) === -1 ? this.cart.push(movie) : ''
-      this.saveCats();
+      this.cart.includes(JSON.stringify(movie)) ? '' : this.cart.push(JSON.stringify(movie));
+
+      this.saveMovies();
     },
 
-    removeItemtoCart(movie) {
-      let found = this.cart.find(item => item.id === movie.id);
-
+    removeItemFromCart(movie) {
+      const found = this.cart.find(value => {
+        if (value) {
+          const xxx = JSON.parse(value);
+          return xxx.id === movie.id;
+        }
+      })
       if (found) {
-        this.$delete(this.cart, this.cart.indexOf(found))
+        this.$delete(this.cart, this.cart.indexOf(found));
       }
-      this.saveCats();
+      this.saveMovies();
     },
 
     listMovies(list) {
-      this.list = list
+      this.list = list;
     },
-    saveCats() {
+
+    saveMovies() {
       const parsed = JSON.stringify(this.cart);
       localStorage.setItem('cart', parsed);
     },
   }
 }
 </script>
-
 
 <style scoped>
 
@@ -161,6 +160,21 @@ export default {
   border: 1px solid black;
 }
 
+.oneMovie {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 0 0 23%;
+  margin-bottom: 10px;
+  padding: 10px 0;
+  box-sizing: border-box;
+  border: 1px solid black;
+}
+.oneMovie span {
+  font-size: 20px;
+  font-family: "Bodoni MT Poster Compressed",sans-serif;
+  margin-top: 10px;
+}
 .pagination {
   margin: 0 auto;
 }
@@ -213,12 +227,6 @@ export default {
   margin-left: 18px;
 }
 
-.totalFavoriteMovie {
-  width: 100px;
-  height: 50px;
-  background-color: #f4511e;
-}
-
 .favoriteMovie {
   display: flex;
   width: 80%;
@@ -259,22 +267,14 @@ export default {
   font-size: 20px;
 }
 
-.listFavoriteMovie {
-  display: flex;
-  flex-direction: column;
-
-}
-
-.listFavoriteMovie span {
-  font-size: 35px;
-  font-family: "Arial Black", sans-serif;
-}
-
 @media (max-width: 1100px) {
   .oneMovieBox img {
     width: 160px;
   }
 
+  .headerFavorite {
+    margin-top: 30px;
+  }
 }
 
 </style>

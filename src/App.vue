@@ -4,18 +4,12 @@
     <router-view/>
   </div>
 </template>
-
 <script>
-// import MoviesList from "@/components/MoviesList";
 
-// import HelloWorld from './components/HelloWorld.vue'
 
 export default {
   name: 'App',
-  components: {
-    // MoviesList,
-    // HelloWorld
-  }
+  components: {}
 }
 </script>
 

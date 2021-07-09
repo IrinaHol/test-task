@@ -21,10 +21,9 @@ export default {
   methods: {
     handleChangePage(pageNumber) {
       this.currentPage = pageNumber;
-      this.$emit('pageChanged', pageNumber)
+      this.$emit('pageChanged', pageNumber);
     }
   }
-
 }
 </script>
 

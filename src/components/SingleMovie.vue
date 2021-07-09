@@ -1,26 +1,28 @@
 <template>
   <div>
-  <header class="btnHeader">
-    <button
-        @click="hasHistory()
+    <header class="btnHeader">
+      <button
+          @click="hasHistory()
     ? $router.go(-1)
     : $router.push('/')" class="btnBack">
-      <span>Back</span>
-    </button>
-  </header>
-  <section class="wrapperDetails">
-    <div class="oneMovieBox">
-     <div><img :src="'https://image.tmdb.org/t/p/w200' + oneMovie.poster_path" alt=oneMovie.original_title/> </div>
-      <h3>{{ oneMovie.title }}</h3>
-      <p>{{ oneMovie.overview }}</p>
-      <div class="countryTitle"><span>COUNTRY: &nbsp; </span><div v-for="country in oneMovie.production_countries" :key="country.name">
-        <span>{{   country.name }}</span></div>
+        <span>Back</span>
+      </button>
+    </header>
+    <section class="wrapperDetails">
+      <div class="oneMovieBox">
+        <div><img :src="'https://image.tmdb.org/t/p/w200' + oneMovie.poster_path" alt=oneMovie.original_title/></div>
+        <h3>{{ oneMovie.title }}</h3>
+        <p>{{ oneMovie.overview }}</p>
+        <div class="countryTitle"><span>COUNTRY: &nbsp; </span>
+          <div v-for="country in oneMovie.production_countries" :key="country.name">
+            <span>{{ country.name }}</span></div>
+        </div>
+        <div class="genresBox"><span>GENRES: &nbsp;</span>
+          <div v-for="genre in oneMovie.genres" :key="genre.id">
+            <span>{{ genre.name }}; &nbsp;</span></div>
+        </div>
       </div>
-      <div class="genresBox"><span>GENRES: &nbsp;</span><div v-for="genre in oneMovie.genres" :key="genre.id">
-      <span>{{ genre.name }}; &nbsp;</span></div>
-    </div>
-    </div>
-  </section>
+    </section>
   </div>
 </template>
 
@@ -44,7 +46,9 @@ export default {
       this.oneMovie = data;
       console.log(this.oneMovie);
     },
-    hasHistory () { return window.history.length > 2 }
+    hasHistory() {
+      return window.history.length > 2
+    }
   }
 }
 
@@ -66,23 +70,24 @@ export default {
   width: 60%;
   border: 1px solid black;
 }
+
 .oneMovieBox h3 {
   color: darkred;
   font-size: 30px;
-  font-family: "Bookman Old Style",sans-serif;
+  font-family: "Bookman Old Style", sans-serif;
   margin: 10px;
 }
 
 .oneMovieBox p {
   font-size: 20px;
-  font-family: "Cambria Math",sans-serif;
+  font-family: "Cambria Math", sans-serif;
   margin: 10px;
 }
 
 .countryTitle {
   display: flex;
   justify-content: center;
-  font-family: "Bookman Old Style",sans-serif;
+  font-family: "Bookman Old Style", sans-serif;
   font-size: 22px;
   font-weight: 520;
 }
@@ -91,7 +96,7 @@ export default {
   display: flex;
   justify-content: center;
   margin-top: 10px;
-  font-family: "Bookman Old Style",sans-serif;
+  font-family: "Bookman Old Style", sans-serif;
   font-size: 18px;
 }
 
