@@ -104,7 +104,6 @@ export default {
 
     async getResult(value) {
       const {...data} = await searchService.getSearch({query: value});
-      console.log(data)
       this.searchField = data.results;
     },
 
