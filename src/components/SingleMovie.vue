@@ -42,9 +42,8 @@ export default {
   methods: {
     async getOneMovie() {
       const data = await moviesService.getMovieDetailsById(this.$route.params.id);
-      console.log(data)
       this.oneMovie = data;
-      console.log(this.oneMovie);
+
     },
     hasHistory() {
       return window.history.length > 2

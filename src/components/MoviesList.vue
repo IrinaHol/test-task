@@ -1,58 +1,62 @@
 <template>
   <div>
-    <header>
-      <div v-if="list==='movies'" class="boxSearch">
+    <section>
+      <div class="boxSearch">
         <img src='../assets/img/search.svg' alt="search" class="searchIcon"/>
-        <input v-model="searchTextValue" type="text" placeholder="Search" class="SearchInput"/>
+        <input v-model="query" type="text" placeholder="Search" @keyup='getResult(query)' class="SearchInput">
       </div>
+    </section>
 
-      <section v-if='!searchTextValue'>
+
+    <div v-if="!searchField">
+      <section>
         <div class="headerFavorite">
           <button @click="listMovies('movies')">show movies</button>
           <span> {{ cart.length }} </span>
           <button @click="listMovies('favoriteMovie')"> favorites movies</button>
         </div>
       </section>
-    </header>
 
-    <main class="mainContainer">
 
-      <div v-if="list==='favoriteMovie'">
-        <FavoriteMovie :cart="cart"/>
-      </div>
+      <main class="mainContainer">
+        <div v-if="list==='favoriteMovie'">
+          <FavoriteMovie :cart="cart"/>
+        </div>
 
-      <div v-if="list==='movies'">
-        <section class="movieContainer" v-if='!searchTextValue'>
+        <div v-if="list==='movies'">
+          <section class="movieContainer">
 
-          <div v-for="(movie) in onSearch" :key="movie.id" class="oneMovieBox">
-            <router-link :to="{ name: 'SingleMovie', params: { id: movie.id }}" class="navigation">
-              <img :src="'https://image.tmdb.org/t/p/w200' + movie.poster_path" alt=movie.original_title/>
-              <span class="movieTitle">{{ movie.title }}</span>
-            </router-link>
+            <div v-for="(movie) in movies" :key="movie.id" class="oneMovieBox">
+              <router-link :to="{ name: 'SingleMovie', params: { id: movie.id }}" class="navigation">
+                <img :src="'https://image.tmdb.org/t/p/w200' + movie.poster_path" alt=movie.original_title/>
+                <span class="movieTitle">{{ movie.title }}</span>
+              </router-link>
 
-            <div class="favoriteMovie">
-              <button :disabled="(cart.includes(JSON.stringify(movie)))" @click="addItemtoCart(movie)" class="like">
-                <span>Like</span>
-              </button>
+              <div class="favoriteMovie">
+                <button :disabled="(cart.includes(JSON.stringify(movie)))" @click="addItemtoCart(movie)" class="like">
+                  <span>Like</span>
+                </button>
 
-              <button :disabled="(!cart.includes(JSON.stringify(movie)))" @click="removeItemFromCart(movie)" class="dislike">
-                <span>Dislike</span>
-              </button>
+                <button :disabled="(!cart.includes(JSON.stringify(movie)))" @click="removeItemFromCart(movie)" class="dislike">
+                  <span>Dislike</span>
+                </button>
+              </div>
             </div>
-          </div>
-          <Pagination :total="total" @pageChanged="loadListMovies" class="pagination"/>
-        </section>
-
-        <section class="movieContainer" v-else>
-          <div v-for="movie in onSearch" :key="movie.id" class="oneMovie" >
-            <img :src="'https://image.tmdb.org/t/p/w200' + movie.poster_path" alt=movie.original_title/>
-            <span>{{ movie.title }}</span>
-            <p>Overview: {{ movie.overview }}</p>
-            <span>Date: {{ movie.release_date }}</span>
-          </div>
-        </section>
+            <Pagination :total="total" @pageChanged="loadListMovies" class="pagination"/>
+          </section>
+        </div>
+      </main>
+    </div>
+    <section v-else>
+      <div class="boxSearchMovie">
+        <div v-for="movie in searchField" :key="movie.id" class="oneMovie">
+          <img :src="'https://image.tmdb.org/t/p/w200' + movie.poster_path" alt=movie.original_title/>
+          <span>{{ movie.title }}</span>
+          <p>Overview: {{ movie.overview }}</p>
+          <span>Date: {{ movie.release_date }}</span>
+        </div>
       </div>
-    </main>
+    </section>
   </div>
 </template>
 
@@ -60,6 +64,7 @@
 import {moviesService} from '@/services/MoviesService';
 import Pagination from '@/components/Pagination';
 import FavoriteMovie from "@/components/FavoriteMovie";
+import {searchService} from "@/services/SearchService";
 
 export default {
   name: "MoviesList",
@@ -68,19 +73,12 @@ export default {
     movies: [],
     page: 1,
     total: 1,
-    searchTextValue: "",
     cart: [],
     list: 'movies',
+    searchField: '',
+    query: '',
   }),
 
-  computed: {
-    onSearch() {
-      const search = this.searchTextValue.toLowerCase();
-      return this.movies.filter(function (movie) {
-        return movie.original_title.toLowerCase().includes(search);
-      });
-    }
-  },
 
   created() {
     this.loadListMovies(this.page);
@@ -104,9 +102,14 @@ export default {
       this.total = data.total_pages;
     },
 
+    async getResult(value) {
+      const {...data} = await searchService.getSearch({query: value});
+      console.log(data)
+      this.searchField = data.results;
+    },
+
     addItemtoCart(movie) {
       this.cart.includes(JSON.stringify(movie)) ? '' : this.cart.push(JSON.stringify(movie));
-
       this.saveMovies();
     },
 
@@ -130,7 +133,7 @@ export default {
     saveMovies() {
       const parsed = JSON.stringify(this.cart);
       localStorage.setItem('cart', parsed);
-    },
+    }
   }
 }
 </script>
@@ -160,21 +163,31 @@ export default {
   border: 1px solid black;
 }
 
+
+.boxSearchMovie {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 20px;
+}
+
 .oneMovie {
   display: flex;
   flex-direction: column;
   align-items: center;
-  flex: 0 0 23%;
+  width: 50%;
   margin-bottom: 10px;
   padding: 10px 0;
   box-sizing: border-box;
   border: 1px solid black;
 }
+
 .oneMovie span {
   font-size: 20px;
-  font-family: "Bodoni MT Poster Compressed",sans-serif;
+  font-family: "Bodoni MT Poster Compressed", sans-serif;
   margin-top: 10px;
 }
+
 .pagination {
   margin: 0 auto;
 }
@@ -209,6 +222,17 @@ export default {
   border-radius: 8px;
   outline: none;
   padding-left: 44px;
+}
+
+.SearchInput {
+  width: 300px;
+  height: 40px;
+  background: #F9FAFB;
+  border: 1px solid #E5E7EB;
+  box-sizing: border-box;
+  border-radius: 8px;
+  outline: none;
+  padding-left: 44px;
 
 }
 
@@ -226,6 +250,7 @@ export default {
   position: absolute;
   margin-left: 18px;
 }
+
 
 .favoriteMovie {
   display: flex;
